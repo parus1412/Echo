@@ -12,22 +12,27 @@ import static com.sun.jndi.ldap.LdapCtx.DEFAULT_PORT;
 
 public class EchoServer {
     private int port;
+    public static int conectionsCounter = 0;
     private boolean isRunning;
     private ServerSocket serverSocket;
+    private Socket clientSocket;
 
     private boolean isRunning() {
         return isRunning;
     }
 
-
     public EchoServer() throws MyEchoException, IOException {
         this(DEFAULT_PORT);
         this.isRunning = false;
+        this.serverSocket = null;
+        this.clientSocket = null;
     }
 
     public EchoServer(int port) throws IOException {
         this.port = port;
         this.isRunning = false;
+        this.serverSocket = null;
+        this.clientSocket = null;
     }
 
     public int getPort() {
@@ -35,65 +40,47 @@ public class EchoServer {
     }
 
     public void start() throws IOException {
+        MultiConnectionsHandler multiConnectionsHandler = null;
+        BufferedReader in = null;
+
+        System.out.println("Starting Echo server ...");
+
         if ( !isRunning() ) {
             this.isRunning = !this.isRunning;
             this.serverSocket = new ServerSocket(this.port);
-            MultiThreadingHandler serverSocket = new MultiThreadingHandler(this.serverSocket);
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-            String userInput;
+            System.out.println("Echo Server started ...");
 
-            serverSocket.start();
+            while ( isRunning() ) {
+                System.out.println("Waiting for next connection ...");
+                this.clientSocket = serverSocket.accept();
 
-            while (((userInput = in.readLine()) != null) && !userInput.contains("shutdown\n")) {
-//                userInput = in.readLine();
-                System.out.println("Server user input: " + userInput);
+                System.out.println("Client " + clientSocket.toString() + " was connected.");
+                conectionsCounter++;
+                System.out.println("Now connected: " + conectionsCounter);
+
+                multiConnectionsHandler = new MultiConnectionsHandler(this.clientSocket);
+
+                multiConnectionsHandler.start();
             }
-            serverSocket.interrupt();
-            stop();
 
+//            in = new BufferedReader(new InputStreamReader(System.in));
+//            String userInput;
 
-//            System.out.println(
-//                "--------------------------------" + "\n" +
-//                "Echo Server started" + "\n" +
-//                "--------------------------------");
-//
-//        }
-//
-////        Socket clientSocket = this.serverSocket.accept();
-////        System.out.println("Accepted connection from client");
-//
-//
-//
-//        while( isRunning() ) {
-//            Socket clientSocket = this.serverSocket.accept();
-//            System.out.println(
-//                "--------------------------------" + "\n" +
-//                "Accepted connection from client" + "\n" +
-//                "--------------------------------");
-//
-//            String clientInput;
-//
-//            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-//            PrintWriter echo = new PrintWriter(clientSocket.getOutputStream(), true);
-//
-//            while (((clientInput = in.readLine()) != null) && !clientInput.contains("disconnect")) {
-//                echo.println("Echo: " + clientInput);
-//                System.out.println("Client input: " + clientInput);
-//
+//            while ((userInput = in.readLine()) != null ) {
+//                if ( userInput.contains("stop_server") ) {
+////                    multiServerSocket.interrupt();
+//                    stop();
+//                }
+//                System.out.println("Server user input: " + userInput);
 //            }
-//            System.out.println(
-//                "--------------------------------" + "\n" +
-//                "Client disconnected" + "\n" +
-//                "--------------------------------");
-//
 
         }
     }
 
     public void stop() throws IOException {
-        if ( isRunning ) {
-            serverSocket.close();
+        if ( isRunning() ) {
             this.isRunning = !this.isRunning;
+            this.serverSocket.close();
         }
         System.out.println("Stop Echo Server");
     }

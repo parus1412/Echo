@@ -17,10 +17,7 @@ public class WazzupClient {
         if (!isConnected()) {
             this.isConnected = !this.isConnected;
             this.serverSocket = new Socket(address, port); /* zavernut v try catch */
-            System.out.println(
-                "--------------------------------" + "\n" +
-                "Connected to " + serverSocket.toString() + "\n" +
-                "--------------------------------");
+            System.out.println("Connected to " + serverSocket.toString());
         }
 
         BufferedReader in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
@@ -36,10 +33,7 @@ public class WazzupClient {
         while( ((input = userInput.readLine()) != null) && !input.contains("disconnect") ) {
             out.println(input);
             if ( ((response = in.readLine()) == null) ) {
-                System.out.println(
-                "--------------------------------" + "\n" +
-                "No response from : " + serverSocket.toString() + " connection lost" + "\n" +
-                "--------------------------------");
+                System.out.println("No response from : " + serverSocket.toString());
 
                 this.serverSocket.close();
                 this.isConnected = !this.isConnected;
@@ -49,11 +43,7 @@ public class WazzupClient {
             }
 
         }
-
-        System.out.println(
-            "--------------------------------" + "\n" +
-            "Disconnected from " + serverSocket.toString() + "\n" +
-            "--------------------------------");
+        System.out.println("Disconnected from " + serverSocket.toString());
     }
 
 
